@@ -1,0 +1,145 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Background - Light gray with slight purple tint */
+    --background: 240 10% 96%;
+    /* Foreground - Dark slate */
+    --foreground: 240 10% 10%;
+
+    /* Cards - Slightly darker than background for elevation */
+    --card: 240 10% 100%;
+    --card-foreground: 240 10% 10%;
+
+    /* Popovers */
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 10%;
+
+    /* Primary - Purple (main brand color) */
+    --primary: 262 83% 58%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Soft purple */
+    --secondary: 262 40% 92%;
+    --secondary-foreground: 262 83% 40%;
+
+    /* Muted */
+    --muted: 240 10% 92%;
+    --muted-foreground: 240 5% 46%;
+
+    /* Accent - Light purple highlight */
+    --accent: 262 60% 95%;
+    --accent-foreground: 262 83% 50%;
+
+    /* Success - Soft green (pastel) */
+    --success: 152 60% 45%;
+    --success-foreground: 0 0% 100%;
+    --success-pastel: 152 60% 92%;
+
+    /* Warning - Soft amber (pastel) */
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --warning-pastel: 38 90% 92%;
+
+    /* Destructive - Soft red (pastel) */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --destructive-pastel: 0 70% 94%;
+
+    /* Info - Soft blue (pastel) */
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+    --info-pastel: 217 90% 94%;
+
+    /* Borders - Subtle */
+    --border: 240 10% 90%;
+    --input: 240 10% 90%;
+
+    /* Ring - Primary */
+    --ring: 262 83% 58%;
+
+    /* Border radius - More rounded */
+    --radius: 1rem;
+
+    /* Sidebar specific */
+    --sidebar-bg: 0 0% 100%;
+    --sidebar-border: 240 10% 92%;
+  }
+
+  .dark {
+    --background: 240 10% 6%;
+    --foreground: 240 10% 98%;
+
+    --card: 240 10% 10%;
+    --card-foreground: 240 10% 98%;
+
+    --popover: 240 10% 10%;
+    --popover-foreground: 240 10% 98%;
+
+    --primary: 262 83% 65%;
+    --primary-foreground: 240 10% 6%;
+
+    --secondary: 262 40% 20%;
+    --secondary-foreground: 262 83% 70%;
+
+    --muted: 240 10% 15%;
+    --muted-foreground: 240 5% 60%;
+
+    --accent: 262 60% 15%;
+    --accent-foreground: 262 83% 70%;
+
+    --success: 152 60% 50%;
+    --success-foreground: 240 10% 6%;
+    --success-pastel: 152 40% 15%;
+
+    --warning: 38 92% 55%;
+    --warning-foreground: 240 10% 6%;
+    --warning-pastel: 38 40% 15%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 240 10% 98%;
+    --destructive-pastel: 0 40% 15%;
+
+    --info: 217 91% 65%;
+    --info-foreground: 240 10% 6%;
+    --info-pastel: 217 40% 15%;
+
+    --border: 240 10% 18%;
+    --input: 240 10% 18%;
+    --ring: 262 83% 65%;
+
+    --sidebar-bg: 240 10% 8%;
+    --sidebar-border: 240 10% 15%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+@layer utilities {
+  /* Pastel badge utilities */
+  .badge-success-pastel {
+    @apply bg-[hsl(var(--success-pastel))] text-success;
+  }
+  .badge-warning-pastel {
+    @apply bg-[hsl(var(--warning-pastel))] text-warning;
+  }
+  .badge-destructive-pastel {
+    @apply bg-[hsl(var(--destructive-pastel))] text-destructive;
+  }
+  .badge-info-pastel {
+    @apply bg-[hsl(var(--info-pastel))] text-info;
+  }
+  .badge-primary-pastel {
+    @apply bg-primary/10 text-primary;
+  }
+}
