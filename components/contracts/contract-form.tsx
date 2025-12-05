@@ -106,7 +106,7 @@ export function ContractForm({ contract, onSubmit, onCancel }: ContractFormProps
   const { paymentMethods } = usePaymentMethods();
   const { products } = useProducts();
   const { categories: productCategories } = useProductCategories();
-  const { packages, getActivePackages } = usePackages();
+  const { packages, getActivePackages, isLoading: isLoadingPackages } = usePackages();
 
   // Determinar modo inicial baseado no contrato existente
   const [mode, setMode] = useState<ContractMode>(() => {
@@ -391,18 +391,29 @@ export function ContractForm({ contract, onSubmit, onCancel }: ContractFormProps
 
           {mode === 'package' && (
             <div className="space-y-3">
-              <Select value={selectedPackageId} onValueChange={setSelectedPackageId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um pacote..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {activePackages.map((pkg) => (
-                    <SelectItem key={pkg.id} value={pkg.id}>
-                      {pkg.name} - {formatCurrency(pkg.monthly_price)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {isLoadingPackages ? (
+                <div className="flex items-center justify-center p-4 rounded-md border bg-muted/30">
+                  <span className="text-sm text-muted-foreground">Carregando pacotes...</span>
+                </div>
+              ) : activePackages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center p-4 rounded-md border bg-muted/30 text-center">
+                  <span className="text-sm text-muted-foreground">Nenhum pacote disponível</span>
+                  <span className="text-xs text-muted-foreground mt-1">Cadastre pacotes em Configurações {'>'} Pacotes</span>
+                </div>
+              ) : (
+                <Select value={selectedPackageId} onValueChange={setSelectedPackageId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um pacote..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {activePackages.map((pkg) => (
+                      <SelectItem key={pkg.id} value={pkg.id}>
+                        {pkg.name} - {formatCurrency(pkg.monthly_price)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
 
               {selectedPackage && (
                 <div className="p-3 rounded-md border bg-muted/30">

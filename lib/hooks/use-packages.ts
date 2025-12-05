@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Package, PackageFormData } from '@/lib/types/package';
 import { useCompany } from '@/lib/contexts/company-context';
@@ -9,7 +9,9 @@ export function usePackages() {
   const [packages, setPackages] = useState<Package[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const supabase = createClient();
+
+  // Estabilizar a instância do cliente Supabase
+  const supabase = useMemo(() => createClient(), []);
 
   const fetchPackages = useCallback(async () => {
     if (!selectedCompanyId) {
@@ -20,7 +22,8 @@ export function usePackages() {
 
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
+      setError(null);
+      const { data, error: queryError } = await supabase
         .from('packages')
         .select(`
           *,
@@ -33,9 +36,10 @@ export function usePackages() {
         .is('deleted_at', null)
         .order('name');
 
-      if (error) throw error;
+      if (queryError) throw queryError;
       setPackages(data || []);
     } catch (err) {
+      console.error('Erro ao carregar pacotes:', err);
       setError(err as Error);
     } finally {
       setIsLoading(false);
