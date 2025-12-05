@@ -73,6 +73,18 @@ export function useTransactions(filters?: TransactionFilters) {
     revalidateOnFocus: false,
   })
 
+  // Campos de relacionamento que não devem ser enviados ao banco (são objetos expandidos, não colunas)
+  const relationshipFields = ['category', 'payment_method', 'customer', 'supplier', 'bank_account', 'product', 'contract']
+
+  const cleanTransactionData = (data: Partial<Transaction>) => {
+    return Object.entries(data).reduce((acc, [key, value]) => {
+      if (!relationshipFields.includes(key) && value !== undefined) {
+        acc[key] = value
+      }
+      return acc
+    }, {} as Record<string, unknown>)
+  }
+
   const createTransaction = async (transaction: Partial<Transaction>) => {
     if (!selectedCompany?.id) {
       toast({
@@ -83,10 +95,12 @@ export function useTransactions(filters?: TransactionFilters) {
       return
     }
 
+    const cleanData = cleanTransactionData(transaction)
+
     const { data, error } = await supabase
       .from("financial_entries")
       .insert([{
-        ...transaction,
+        ...cleanData,
         company_id: selectedCompany.id,
       }])
       .select()
@@ -106,9 +120,11 @@ export function useTransactions(filters?: TransactionFilters) {
   }
 
   const updateTransaction = async (id: string, updates: Partial<Transaction>) => {
+    const cleanData = cleanTransactionData(updates)
+
     const { error } = await supabase
       .from("financial_entries")
-      .update(updates)
+      .update(cleanData)
       .eq("id", id)
       .eq("company_id", selectedCompany?.id)
 
