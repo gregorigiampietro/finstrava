@@ -113,31 +113,34 @@ export function useContracts() {
   };
 
   const updateContract = async (id: string, data: Partial<ContractFormData>) => {
+    // Separar contract_items do resto dos dados (contract_items é tabela relacionada, não coluna)
+    const { contract_items, ...contractData } = data;
+
     // Se mudou billing_type ou billing_day, recalcular próxima data
     let nextBillingDate;
-    if (data.billing_type || data.billing_day) {
+    if (contractData.billing_type || contractData.billing_day) {
       const contract = contracts.find(c => c.id === id);
       if (contract) {
         // Se ainda não processou primeira cobrança, usar calculate_first_next_billing_date
         if (!contract.first_billing_processed) {
           nextBillingDate = await calculateFirstNextBillingDate(
-            data.start_date || contract.start_date,
-            data.billing_type || contract.billing_type,
-            data.billing_day || contract.billing_day
+            contractData.start_date || contract.start_date,
+            contractData.billing_type || contract.billing_type,
+            contractData.billing_day || contract.billing_day
           );
         } else if (contract.next_billing_date) {
           // Se já processou, usar a data atual de cobrança
           nextBillingDate = await calculateNextBillingDate(
             contract.next_billing_date,
-            data.billing_type || contract.billing_type,
-            data.billing_day || contract.billing_day
+            contractData.billing_type || contract.billing_type,
+            contractData.billing_day || contract.billing_day
           );
         }
       }
     }
 
     // Filtrar campos undefined
-    const cleanData = Object.entries(data).reduce((acc, [key, value]) => {
+    const cleanData = Object.entries(contractData).reduce((acc, [key, value]) => {
       if (value !== undefined && value !== '') {
         acc[key] = value;
       }
@@ -149,12 +152,41 @@ export function useContracts() {
       ...(nextBillingDate && { next_billing_date: nextBillingDate }),
     };
 
+    // Atualizar dados do contrato
     const { error } = await supabase
       .from('contracts')
       .update(updateData)
       .eq('id', id);
 
     if (error) throw error;
+
+    // Atualizar itens do contrato se foram fornecidos
+    if (contract_items && contract_items.length > 0) {
+      // Deletar itens antigos
+      const { error: deleteError } = await supabase
+        .from('contract_items')
+        .delete()
+        .eq('contract_id', id);
+
+      if (deleteError) throw deleteError;
+
+      // Inserir novos itens
+      const contractItemsData = contract_items.map(item => ({
+        product_id: item.product_id,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        description: item.description || null,
+        contract_id: id,
+        is_active: item.is_active ?? true,
+      }));
+
+      const { error: insertError } = await supabase
+        .from('contract_items')
+        .insert(contractItemsData);
+
+      if (insertError) throw insertError;
+    }
+
     await fetchContracts();
   };
 
