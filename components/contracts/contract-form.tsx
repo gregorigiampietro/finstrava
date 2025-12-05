@@ -90,6 +90,7 @@ interface ContractFormProps {
 
 type ContractMode = 'package' | 'custom';
 type DiscountType = 'none' | 'percentage' | 'fixed';
+type AdditionType = 'none' | 'percentage' | 'fixed';
 
 interface CategoryGroup {
   id: string | null;
@@ -123,6 +124,8 @@ export function ContractForm({ contract, onSubmit, onCancel }: ContractFormProps
   });
   const [discountType, setDiscountType] = useState<DiscountType>('none');
   const [discountValue, setDiscountValue] = useState<number>(0);
+  const [additionType, setAdditionType] = useState<AdditionType>('none');
+  const [additionValue, setAdditionValue] = useState<number>(0);
 
   const activePackages = getActivePackages();
   const activeProducts = products.filter(p => p.is_active);
@@ -211,7 +214,12 @@ export function ContractForm({ contract, onSubmit, onCancel }: ContractFormProps
     return discountType === 'percentage' ? subtotal * (discountValue / 100) : Math.min(discountValue, subtotal);
   }, [discountType, discountValue, subtotal]);
 
-  const finalTotal = Math.max(0, subtotal - discountAmount);
+  const additionAmount = useMemo(() => {
+    if (additionType === 'none' || additionValue <= 0) return 0;
+    return additionType === 'percentage' ? subtotal * (additionValue / 100) : additionValue;
+  }, [additionType, additionValue, subtotal]);
+
+  const finalTotal = Math.max(0, subtotal - discountAmount + additionAmount);
 
   // Update form when selection changes
   useEffect(() => {
@@ -532,6 +540,70 @@ export function ContractForm({ contract, onSubmit, onCancel }: ContractFormProps
               )}
               {discountAmount > 0 && (
                 <p className="text-sm text-red-500">- {formatCurrency(discountAmount)}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <FormLabel>Acréscimo</FormLabel>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => { setAdditionType('none'); setAdditionValue(0); }}
+                  className={cn(
+                    'px-3 py-2 rounded-md border text-sm transition-colors',
+                    additionType === 'none' ? 'border-primary bg-primary/5' : 'border-input'
+                  )}
+                >
+                  Nenhum
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAdditionType('percentage')}
+                  className={cn(
+                    'px-3 py-2 rounded-md border text-sm transition-colors',
+                    additionType === 'percentage' ? 'border-primary bg-primary/5' : 'border-input'
+                  )}
+                >
+                  Percentual
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAdditionType('fixed')}
+                  className={cn(
+                    'px-3 py-2 rounded-md border text-sm transition-colors',
+                    additionType === 'fixed' ? 'border-primary bg-primary/5' : 'border-input'
+                  )}
+                >
+                  Valor Fixo
+                </button>
+              </div>
+              {additionType !== 'none' && (
+                <div className="flex gap-2 items-center">
+                  {additionType === 'percentage' ? (
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      placeholder="0"
+                      value={additionValue || ''}
+                      onChange={(e) => setAdditionValue(parseFloat(e.target.value) || 0)}
+                      className="w-24"
+                    />
+                  ) : (
+                    <CurrencyInput
+                      value={additionValue}
+                      onChange={setAdditionValue}
+                      placeholder="0,00"
+                    />
+                  )}
+                  <span className="text-sm text-muted-foreground">
+                    {additionType === 'percentage' ? '%' : ''}
+                  </span>
+                </div>
+              )}
+              {additionAmount > 0 && (
+                <p className="text-sm text-green-600">+ {formatCurrency(additionAmount)}</p>
               )}
             </div>
 
