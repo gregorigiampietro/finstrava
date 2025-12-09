@@ -139,7 +139,9 @@ export function TransactionForm({
       }
 
       if (transaction) {
-        await updateTransaction(transaction.id, data)
+        // Remove the installments field before sending to database
+        const { installments, ...transactionData } = data
+        await updateTransaction(transaction.id, transactionData)
         toast({
           title: "Lançamento atualizado",
           description: "O lançamento foi atualizado com sucesso.",
@@ -170,7 +172,9 @@ export function TransactionForm({
             description: `${installments} parcelas criadas com sucesso.`,
           })
         } else {
-          await createTransaction(data)
+          // Remove the installments field before sending to database
+          const { installments, ...transactionData } = data
+          await createTransaction(transactionData)
           toast({
             title: "Lançamento criado",
             description: "O lançamento foi criado com sucesso.",
