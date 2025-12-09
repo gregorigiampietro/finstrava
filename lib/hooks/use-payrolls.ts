@@ -43,10 +43,16 @@ export function usePayrolls() {
   const createPayroll = async (data: PayrollFormData) => {
     if (!selectedCompanyId) throw new Error('Nenhuma empresa selecionada');
 
+    // payment_date não é mais fornecido, será calculado pela função de geração de lançamentos
+    // Por enquanto, vamos usar o primeiro dia do próximo mês como placeholder
+    const referenceDate = new Date(data.reference_month);
+    const paymentDate = new Date(referenceDate.getFullYear(), referenceDate.getMonth() + 1, 1);
+
     const { error } = await supabase
       .from('payrolls')
       .insert([{
         ...data,
+        payment_date: paymentDate.toISOString().split('T')[0],
         company_id: selectedCompanyId,
         status: 'draft',
       }]);

@@ -56,7 +56,6 @@ export interface PayrollItem {
 
 export interface PayrollFormData {
   reference_month: string;
-  payment_date: string;
   notes?: string;
 }
 
