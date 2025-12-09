@@ -105,7 +105,7 @@ export interface EmployeeFormData {
   base_salary: number;
   contract_type?: ContractType;
   work_hours?: number;
-  payment_day?: number;
+  payment_day: number;
   default_category_id?: string | null;
   default_payment_method_id?: string | null;
   default_bank_account_id?: string | null;
