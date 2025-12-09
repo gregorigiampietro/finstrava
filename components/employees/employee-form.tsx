@@ -110,7 +110,7 @@ const formSchema = z.object({
   base_salary: z.number().min(0, 'Salário não pode ser negativo'),
   contract_type: z.enum(['clt', 'pj', 'intern', 'temporary', 'freelancer']).optional(),
   work_hours: z.number().min(1).max(44).optional(),
-  payment_day: z.number().min(1).max(31).optional(),
+  payment_day: z.number().min(1, 'Dia de pagamento deve ser entre 1 e 31').max(31, 'Dia de pagamento deve ser entre 1 e 31'),
   status: z.enum(['active', 'inactive', 'vacation', 'leave', 'terminated']).optional(),
   notes: z.string().optional(),
 });
@@ -829,14 +829,15 @@ export function EmployeeForm({ employee, onSubmit, onCancel }: EmployeeFormProps
                 name="payment_day"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Dia de Pagamento</FormLabel>
+                    <FormLabel>Dia de Pagamento *</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         min={1}
                         max={31}
                         {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 5)}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
+                        required
                       />
                     </FormControl>
                     <FormDescription>Dia do mês</FormDescription>
