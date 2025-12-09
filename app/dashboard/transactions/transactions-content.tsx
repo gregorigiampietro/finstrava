@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { TransactionForm } from "@/components/transactions/transaction-form"
 import { TransactionsTable } from "@/components/transactions/transactions-table"
 import { TransactionsFilters } from "@/components/transactions/transactions-filters"
+import { TransactionsKpiCards } from "@/components/transactions/transactions-kpi-cards"
 import { useTransactions } from "@/lib/hooks/use-transactions"
 import { Card } from "@/components/ui/card"
 import { CompanyGuard } from "@/components/company-guard"
@@ -31,6 +32,8 @@ export function TransactionsContent() {
             Novo Lançamento
           </Button>
         </div>
+
+        <TransactionsKpiCards transactions={transactions || []} />
 
         <Card className="p-6">
           <TransactionsFilters 
