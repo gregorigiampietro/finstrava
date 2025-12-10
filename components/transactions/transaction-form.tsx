@@ -165,6 +165,8 @@ export function TransactionForm({
   const transactionType = form.watch("type")
   const selectedPaymentMethod = form.watch("payment_method_id")
   const selectedProduct = form.watch("product_id")
+  const isRecurring = form.watch("is_recurring")
+  const recurringType = form.watch("recurring_type")
   
   // Get selected payment method details
   const paymentMethod = paymentMethods?.find(pm => pm.id === selectedPaymentMethod)
@@ -221,8 +223,8 @@ export function TransactionForm({
       }
 
       if (transaction) {
-        // Remove the installments field before sending to database
-        const { installments, ...transactionData } = data
+        // Remove fields that don't go to database
+        const { installments, is_recurring, recurring_type: _, recurring_times, ...transactionData } = data
         await updateTransaction(transaction.id, transactionData)
         toast({
           title: "Lançamento atualizado",
@@ -291,8 +293,8 @@ export function TransactionForm({
             description: `${installments} parcelas criadas com sucesso.`,
           })
         } else {
-          // Remove the installments field before sending to database
-          const { installments, ...transactionData } = data
+          // Remove fields that don't go to database
+          const { installments, is_recurring, recurring_type: _, recurring_times, ...transactionData } = data
           await createTransaction(transactionData)
           toast({
             title: "Lançamento criado",
