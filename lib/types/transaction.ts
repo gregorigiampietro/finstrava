@@ -55,6 +55,9 @@ export interface Transaction {
     } | null
   }
   is_contract_generated?: boolean
+  is_recurring?: boolean
+  recurring_type?: string | null
+  parent_transaction_id?: string | null
   installment?: number | null
   total_installments?: number | null
   billing_cycle_number?: number | null
