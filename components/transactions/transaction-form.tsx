@@ -268,6 +268,7 @@ export function TransactionForm({
         }
         // Handle installments
         else if (values.installments && values.installments > 1) {
+          const installments = values.installments
           const installmentAmount = values.amount / installments
           const baseDate = new Date(values.due_date)
           
