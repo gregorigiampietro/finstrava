@@ -82,7 +82,6 @@ export interface TransactionFormData {
   is_recurring?: boolean
   recurring_type?: RecurringType
   recurring_times?: number
-  recurring_end_date?: string | null
 }
 
 export interface TransactionFilters {

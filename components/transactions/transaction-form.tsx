@@ -74,7 +74,6 @@ const formSchema = z.object({
   is_recurring: z.boolean().optional(),
   recurring_type: z.enum(['monthly', 'bimonthly', 'quarterly', 'semiannual', 'annual', 'weekly']).optional(),
   recurring_times: z.number().min(2).max(60).optional(),
-  recurring_end_date: z.date().optional(),
 })
 
 interface TransactionFormProps {
@@ -116,7 +115,6 @@ export function TransactionForm({
       is_recurring: false,
       recurring_type: 'monthly' as RecurringType,
       recurring_times: 12,
-      recurring_end_date: undefined,
     },
   })
 
@@ -140,7 +138,6 @@ export function TransactionForm({
         is_recurring: false,
         recurring_type: 'monthly' as RecurringType,
         recurring_times: 12,
-        recurring_end_date: undefined,
       })
     } else if (open && !transaction) {
       // Reset to default values for new transaction
@@ -161,7 +158,6 @@ export function TransactionForm({
         is_recurring: false,
         recurring_type: 'monthly' as RecurringType,
         recurring_times: 12,
-        recurring_end_date: undefined,
       })
     }
   }, [open, transaction, form])
@@ -246,7 +242,7 @@ export function TransactionForm({
             const monthYear = format(dueDate, "MMM/yyyy", { locale: ptBR })
             
             // Preparar dados da transação
-            const { installments, is_recurring, recurring_type: _, recurring_times, recurring_end_date, ...baseData } = data
+            const { installments, is_recurring, recurring_type: _, recurring_times, ...baseData } = data
             
             const transactionData = {
               ...baseData,
