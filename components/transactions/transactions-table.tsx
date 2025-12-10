@@ -377,14 +377,16 @@ export function TransactionsTable({
                   <div className="flex items-center gap-2">
                     <p className="font-medium">{transaction.description}</p>
                     {transaction.is_recurring && (
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Repeat className="h-3 w-3 text-muted-foreground" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Lançamento recorrente</p>
-                        </TooltipContent>
-                      </Tooltip>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Repeat className="h-3 w-3 text-muted-foreground" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Lançamento recorrente</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     )}
                   </div>
                 </TableCell>
