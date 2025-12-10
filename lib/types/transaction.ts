@@ -78,6 +78,11 @@ export interface TransactionFormData {
   product_id?: string | null
   installments?: number
   notes?: string | null
+  // Campos de recorrência (não são salvos no banco)
+  is_recurring?: boolean
+  recurring_type?: RecurringType
+  recurring_times?: number
+  recurring_end_date?: string | null
 }
 
 export interface TransactionFilters {
