@@ -245,8 +245,11 @@ export function TransactionForm({
             const dueDate = getNextDate(baseDate, recurringType, i)
             const monthYear = format(dueDate, "MMM/yyyy", { locale: ptBR })
             
+            // Preparar dados da transação
+            const { installments, is_recurring, recurring_type: _, recurring_times, recurring_end_date, ...baseData } = data
+            
             const transactionData = {
-              ...data,
+              ...baseData,
               due_date: format(dueDate, "yyyy-MM-dd"),
               description: `${data.description} - ${monthYear}`,
               is_recurring: true,
@@ -254,10 +257,7 @@ export function TransactionForm({
               parent_transaction_id: i === 0 ? undefined : parentId,
             }
             
-            // Remover campos de recorrência que não vão para o banco
-            const { installments, is_recurring: _, recurring_type: __, recurring_times: ___, recurring_end_date, ...cleanData } = transactionData
-            
-            const result = await createTransaction(cleanData)
+            const result = await createTransaction(transactionData)
             
             // Guardar o ID do primeiro lançamento como parent
             if (i === 0 && result) {
