@@ -8,13 +8,13 @@ import { TransactionsTable } from "@/components/transactions/transactions-table"
 import { TransactionsFilters } from "@/components/transactions/transactions-filters"
 import { TransactionsKpiCards } from "@/components/transactions/transactions-kpi-cards"
 import { useTransactions } from "@/lib/hooks/use-transactions"
+import { useTransactionFilters } from "@/lib/hooks/use-transaction-filters"
 import { Card } from "@/components/ui/card"
 import { CompanyGuard } from "@/components/company-guard"
-import { TransactionFilters } from "@/lib/types/transaction"
 
 export function TransactionsContent() {
   const [isCreating, setIsCreating] = useState(false)
-  const [filters, setFilters] = useState<TransactionFilters>({})
+  const [filters, setFilters] = useTransactionFilters()
   const { transactions, isLoading, mutate } = useTransactions(filters)
 
   return (
