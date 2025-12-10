@@ -532,7 +532,7 @@ export function TransactionsTable({
       <TransactionForm
         open={!!editingTransaction}
         onOpenChange={(open) => !open && setEditingTransaction(null)}
-        transaction={editingTransaction || undefined}
+        transaction={editingTransaction ?? undefined}
         onSuccess={() => {
           setEditingTransaction(null)
           onUpdate?.()

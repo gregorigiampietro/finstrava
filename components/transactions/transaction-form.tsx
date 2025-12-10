@@ -92,21 +92,59 @@ export function TransactionForm({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      type: transaction?.type || "income",
-      amount: transaction?.amount || 0,
-      description: transaction?.description || "",
-      due_date: transaction?.due_date ? new Date(transaction.due_date) : new Date(),
-      payment_date: transaction?.payment_date ? new Date(transaction.payment_date) : undefined,
-      category_id: transaction?.category_id || undefined,
-      payment_method_id: transaction?.payment_method_id || undefined,
-      customer_id: transaction?.customer_id || undefined,
-      supplier_id: transaction?.supplier_id || undefined,
-      bank_account_id: transaction?.bank_account_id || undefined,
-      product_id: transaction?.product_id || undefined,
+      type: "income",
+      amount: 0,
+      description: "",
+      due_date: new Date(),
+      payment_date: undefined,
+      category_id: undefined,
+      payment_method_id: undefined,
+      customer_id: undefined,
+      supplier_id: undefined,
+      bank_account_id: undefined,
+      product_id: undefined,
       installments: 1,
-      notes: transaction?.notes || "",
+      notes: "",
     },
   })
+
+  // Reset form when transaction changes or modal opens
+  useEffect(() => {
+    if (open && transaction) {
+      form.reset({
+        type: transaction.type,
+        amount: transaction.amount,
+        description: transaction.description,
+        due_date: new Date(transaction.due_date),
+        payment_date: transaction.payment_date ? new Date(transaction.payment_date) : undefined,
+        category_id: transaction.category_id || undefined,
+        payment_method_id: transaction.payment_method_id || undefined,
+        customer_id: transaction.customer_id || undefined,
+        supplier_id: transaction.supplier_id || undefined,
+        bank_account_id: transaction.bank_account_id || undefined,
+        product_id: transaction.product_id || undefined,
+        installments: transaction.total_installments || 1,
+        notes: transaction.notes || "",
+      })
+    } else if (open && !transaction) {
+      // Reset to default values for new transaction
+      form.reset({
+        type: "income",
+        amount: 0,
+        description: "",
+        due_date: new Date(),
+        payment_date: undefined,
+        category_id: undefined,
+        payment_method_id: undefined,
+        customer_id: undefined,
+        supplier_id: undefined,
+        bank_account_id: undefined,
+        product_id: undefined,
+        installments: 1,
+        notes: "",
+      })
+    }
+  }, [open, transaction, form])
 
   const transactionType = form.watch("type")
   const selectedPaymentMethod = form.watch("payment_method_id")
