@@ -91,3 +91,20 @@ export interface TransactionFilters {
   date_to?: string
   search?: string
 }
+
+export type RecurringType = 'monthly' | 'bimonthly' | 'quarterly' | 'semiannual' | 'annual' | 'weekly'
+
+export const recurringTypeLabels: Record<RecurringType, string> = {
+  monthly: 'Mensal',
+  bimonthly: 'Bimestral',
+  quarterly: 'Trimestral', 
+  semiannual: 'Semestral',
+  annual: 'Anual',
+  weekly: 'Semanal'
+}
+
+export interface RecurringOptions {
+  type: RecurringType
+  times?: number
+  endDate?: string
+}

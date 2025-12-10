@@ -15,6 +15,7 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  Repeat,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
@@ -373,7 +374,19 @@ export function TransactionsTable({
                   )}
                 </TableCell>
                 <TableCell>
-                  <p className="font-medium">{transaction.description}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium">{transaction.description}</p>
+                    {transaction.is_recurring && (
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Repeat className="h-3 w-3 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Lançamento recorrente</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell>
                   {transaction.contract?.package?.name ? (

@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { format } from "date-fns"
+import { ptBR } from "date-fns/locale"
 import { CalendarIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -43,7 +44,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { CurrencyInput } from "@/components/ui/currency-input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Transaction, TransactionFormData } from "@/lib/types/transaction"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import { Transaction, TransactionFormData, RecurringType, recurringTypeLabels } from "@/lib/types/transaction"
 import { useTransactions } from "@/lib/hooks/use-transactions"
 import { useCategories } from "@/lib/hooks/use-categories"
 import { usePaymentMethods } from "@/lib/hooks/use-payment-methods"
@@ -67,6 +70,11 @@ const formSchema = z.object({
   product_id: z.string().optional(),
   installments: z.number().min(1).max(48).optional(),
   notes: z.string().optional(),
+  // Campos de recorrência
+  is_recurring: z.boolean().optional(),
+  recurring_type: z.enum(['monthly', 'bimonthly', 'quarterly', 'semiannual', 'annual', 'weekly']).optional(),
+  recurring_times: z.number().min(2).max(60).optional(),
+  recurring_end_date: z.date().optional(),
 })
 
 interface TransactionFormProps {
@@ -105,6 +113,10 @@ export function TransactionForm({
       product_id: undefined,
       installments: 1,
       notes: "",
+      is_recurring: false,
+      recurring_type: 'monthly' as RecurringType,
+      recurring_times: 12,
+      recurring_end_date: undefined,
     },
   })
 
@@ -125,6 +137,10 @@ export function TransactionForm({
         product_id: transaction.product_id || undefined,
         installments: transaction.total_installments || 1,
         notes: transaction.notes || "",
+        is_recurring: false,
+        recurring_type: 'monthly' as RecurringType,
+        recurring_times: 12,
+        recurring_end_date: undefined,
       })
     } else if (open && !transaction) {
       // Reset to default values for new transaction
@@ -142,6 +158,10 @@ export function TransactionForm({
         product_id: undefined,
         installments: 1,
         notes: "",
+        is_recurring: false,
+        recurring_type: 'monthly' as RecurringType,
+        recurring_times: 12,
+        recurring_end_date: undefined,
       })
     }
   }, [open, transaction, form])
@@ -167,6 +187,34 @@ export function TransactionForm({
   // Filter categories by type
   const filteredCategories = categories?.filter(cat => cat.type === transactionType)
 
+  // Função para calcular próxima data baseado no tipo de recorrência
+  const getNextDate = (baseDate: Date, recurringType: RecurringType, iteration: number): Date => {
+    const nextDate = new Date(baseDate)
+    
+    switch (recurringType) {
+      case 'monthly':
+        nextDate.setMonth(nextDate.getMonth() + iteration)
+        break
+      case 'bimonthly':
+        nextDate.setMonth(nextDate.getMonth() + (iteration * 2))
+        break
+      case 'quarterly':
+        nextDate.setMonth(nextDate.getMonth() + (iteration * 3))
+        break
+      case 'semiannual':
+        nextDate.setMonth(nextDate.getMonth() + (iteration * 6))
+        break
+      case 'annual':
+        nextDate.setFullYear(nextDate.getFullYear() + iteration)
+        break
+      case 'weekly':
+        nextDate.setDate(nextDate.getDate() + (iteration * 7))
+        break
+    }
+    
+    return nextDate
+  }
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true)
     try {
@@ -185,9 +233,45 @@ export function TransactionForm({
           description: "O lançamento foi atualizado com sucesso.",
         })
       } else {
+        // Handle recurring transactions
+        if (values.is_recurring && values.recurring_times && values.recurring_times > 1) {
+          const recurringTimes = values.recurring_times
+          const recurringType = values.recurring_type || 'monthly'
+          const baseDate = new Date(values.due_date)
+          let parentId: string | undefined
+          
+          // Criar lançamentos recorrentes
+          for (let i = 0; i < recurringTimes; i++) {
+            const dueDate = getNextDate(baseDate, recurringType, i)
+            const monthYear = format(dueDate, "MMM/yyyy", { locale: ptBR })
+            
+            const transactionData = {
+              ...data,
+              due_date: format(dueDate, "yyyy-MM-dd"),
+              description: `${data.description} - ${monthYear}`,
+              is_recurring: true,
+              recurring_type: recurringType,
+              parent_transaction_id: i === 0 ? undefined : parentId,
+            }
+            
+            // Remover campos de recorrência que não vão para o banco
+            const { installments, is_recurring: _, recurring_type: __, recurring_times: ___, recurring_end_date, ...cleanData } = transactionData
+            
+            const result = await createTransaction(cleanData)
+            
+            // Guardar o ID do primeiro lançamento como parent
+            if (i === 0 && result) {
+              parentId = result.id
+            }
+          }
+          
+          toast({
+            title: "Lançamentos recorrentes criados",
+            description: `${recurringTimes} lançamentos criados com sucesso.`,
+          })
+        }
         // Handle installments
-        const installments = values.installments || 1
-        if (installments > 1) {
+        else if (values.installments && values.installments > 1) {
           const installmentAmount = values.amount / installments
           const baseDate = new Date(values.due_date)
           
@@ -504,6 +588,96 @@ export function TransactionForm({
                   </FormItem>
                 )}
               />
+            )}
+
+            {/* Opções de Recorrência - apenas para novos lançamentos */}
+            {!transaction && (
+              <div className="space-y-4 rounded-lg border p-4">
+                <FormField
+                  control={form.control}
+                  name="is_recurring"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>
+                          Repetir este lançamento
+                        </FormLabel>
+                        <FormDescription>
+                          Criar múltiplos lançamentos de forma automática
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                {isRecurring && (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="recurring_type"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Frequência</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {Object.entries(recurringTypeLabels).map(([value, label]) => (
+                                  <SelectItem key={value} value={value}>
+                                    {label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="recurring_times"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Número de repetições</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min={2}
+                                max={60}
+                                {...field}
+                                onChange={(e) => field.onChange(Number(e.target.value))}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              {recurringType === 'monthly' && `Criar ${field.value} lançamentos mensais`}
+                              {recurringType === 'weekly' && `Criar ${field.value} lançamentos semanais`}
+                              {recurringType === 'bimonthly' && `Criar ${field.value} lançamentos bimestrais`}
+                              {recurringType === 'quarterly' && `Criar ${field.value} lançamentos trimestrais`}
+                              {recurringType === 'semiannual' && `Criar ${field.value} lançamentos semestrais`}
+                              {recurringType === 'annual' && `Criar ${field.value} lançamentos anuais`}
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
             )}
 
             <FormField

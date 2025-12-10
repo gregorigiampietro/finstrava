@@ -85,7 +85,7 @@ export function useTransactions(filters?: TransactionFilters) {
     }, {} as Record<string, unknown>)
   }
 
-  const createTransaction = async (transaction: Partial<Transaction>) => {
+  const createTransaction = async (transaction: Partial<Transaction>): Promise<Transaction | undefined> => {
     if (!selectedCompany?.id) {
       toast({
         title: "Erro",
