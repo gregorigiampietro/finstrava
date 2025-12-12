@@ -450,8 +450,8 @@ export function TransactionsTable({
                 <TableCell>
                   <div className="flex items-center justify-center gap-1">
                     <TooltipProvider>
-                      {/* Botão Pago - apenas para pendentes */}
-                      {transaction.status === "pending" && (
+                      {/* Botão Pago - para pendentes e vencidos */}
+                      {(transaction.status === "pending" || transaction.status === "overdue") && (
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button
@@ -467,8 +467,8 @@ export function TransactionsTable({
                         </Tooltip>
                       )}
 
-                      {/* Botão Cancelar - apenas para pendentes */}
-                      {transaction.status === "pending" && (
+                      {/* Botão Cancelar - para pendentes e vencidos */}
+                      {(transaction.status === "pending" || transaction.status === "overdue") && (
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button
