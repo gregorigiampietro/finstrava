@@ -30,21 +30,49 @@ export function useTransactions(filters?: TransactionFilters) {
     if (filters?.type) {
       query = query.eq("type", filters.type)
     }
+    
+    // Status filter - supports multiple values
     if (filters?.status) {
-      query = query.eq("status", filters.status)
+      const statuses = filters.status.split(',')
+      if (statuses.length === 1) {
+        query = query.eq("status", statuses[0])
+      } else {
+        query = query.in("status", statuses)
+      }
     }
-    if (filters?.category_id) {
+    
+    // Category filter - check both single and multiple
+    if (filters?.category_ids) {
+      const categoryIds = filters.category_ids.split(',')
+      query = query.in("category_id", categoryIds)
+    } else if (filters?.category_id) {
       query = query.eq("category_id", filters.category_id)
     }
-    if (filters?.payment_method_id) {
+    
+    // Payment method filter - check both single and multiple
+    if (filters?.payment_method_ids) {
+      const paymentMethodIds = filters.payment_method_ids.split(',')
+      query = query.in("payment_method_id", paymentMethodIds)
+    } else if (filters?.payment_method_id) {
       query = query.eq("payment_method_id", filters.payment_method_id)
     }
-    if (filters?.customer_id) {
+    
+    // Customer filter - check both single and multiple
+    if (filters?.customer_ids) {
+      const customerIds = filters.customer_ids.split(',')
+      query = query.in("customer_id", customerIds)
+    } else if (filters?.customer_id) {
       query = query.eq("customer_id", filters.customer_id)
     }
-    if (filters?.supplier_id) {
+    
+    // Supplier filter - check both single and multiple
+    if (filters?.supplier_ids) {
+      const supplierIds = filters.supplier_ids.split(',')
+      query = query.in("supplier_id", supplierIds)
+    } else if (filters?.supplier_id) {
       query = query.eq("supplier_id", filters.supplier_id)
     }
+    
     if (filters?.date_from) {
       query = query.gte("due_date", filters.date_from)
     }

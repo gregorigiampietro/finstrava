@@ -5,11 +5,10 @@ import { Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { TransactionForm } from "@/components/transactions/transaction-form"
 import { TransactionsTable } from "@/components/transactions/transactions-table"
-import { TransactionsFilters } from "@/components/transactions/transactions-filters"
+import { TransactionsFiltersDialog } from "@/components/transactions/transactions-filters-dialog"
 import { TransactionsKpiCards } from "@/components/transactions/transactions-kpi-cards"
 import { useTransactions } from "@/lib/hooks/use-transactions"
 import { useTransactionFilters } from "@/lib/hooks/use-transaction-filters"
-import { Card } from "@/components/ui/card"
 import { CompanyGuard } from "@/components/company-guard"
 
 export function TransactionsContent() {
@@ -27,20 +26,19 @@ export function TransactionsContent() {
               Gerencie suas receitas e despesas
             </p>
           </div>
-          <Button onClick={() => setIsCreating(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Lançamento
-          </Button>
+          <div className="flex gap-2">
+            <TransactionsFiltersDialog 
+              filters={filters}
+              onFiltersChange={setFilters}
+            />
+            <Button onClick={() => setIsCreating(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Novo Lançamento
+            </Button>
+          </div>
         </div>
 
         <TransactionsKpiCards transactions={transactions || []} />
-
-        <Card className="p-6">
-          <TransactionsFilters 
-            filters={filters}
-            onFiltersChange={setFilters}
-          />
-        </Card>
 
         <TransactionsTable 
           transactions={transactions || []} 

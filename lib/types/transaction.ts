@@ -89,11 +89,15 @@ export interface TransactionFormData {
 
 export interface TransactionFilters {
   type?: 'income' | 'expense'
-  status?: 'pending' | 'paid' | 'cancelled' | 'overdue'
-  category_id?: string
-  payment_method_id?: string
-  customer_id?: string
+  status?: string // Comma-separated values: "pending,paid,overdue,cancelled"
+  category_id?: string // Single value for backward compatibility
+  category_ids?: string // Comma-separated values
+  payment_method_id?: string // Single value for backward compatibility  
+  payment_method_ids?: string // Comma-separated values
+  customer_id?: string // Single value for backward compatibility
+  customer_ids?: string // Comma-separated values
   supplier_id?: string
+  supplier_ids?: string // Comma-separated values
   date_from?: string
   date_to?: string
   search?: string
