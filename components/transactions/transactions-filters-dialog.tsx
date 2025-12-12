@@ -3,21 +3,12 @@
 import { useState, useEffect } from "react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { Filter, X, Check, Calendar } from "lucide-react"
+import { Filter, X, Check, Calendar, ChevronDown } from "lucide-react"
 import { DateRange } from "react-day-picker"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
 import {
   Popover,
   PopoverContent,
@@ -54,7 +45,7 @@ const typeOptions: MultiSelectOption[] = [
   { value: "expense", label: "Despesa" },
 ]
 
-function MultiSelect({
+function CompactMultiSelect({
   options,
   selected,
   onChange,
@@ -73,60 +64,48 @@ function MultiSelect({
     }
   }
 
+  const getButtonLabel = () => {
+    if (selected.length === 0) return placeholder
+    if (selected.length === options.length) return "Todos"
+    if (selected.length === 1) {
+      const option = options.find(o => o.value === selected[0])
+      return option?.label || placeholder
+    }
+    return `${selected.length} selecionados`
+  }
+
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          role="combobox"
-          className="w-full justify-between font-normal"
+          size="sm"
+          className="w-full justify-between text-xs h-8"
         >
-          <span className="truncate">
-            {selected.length === 0
-              ? placeholder
-              : selected.length === options.length
-              ? "Todos"
-              : `${selected.length} selecionado${selected.length > 1 ? 's' : ''}`}
-          </span>
-          <Badge variant="secondary" className="ml-2">
-            {selected.length}
-          </Badge>
+          <span className="truncate">{getButtonLabel()}</span>
+          <ChevronDown className="ml-1 h-3 w-3" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-0">
-        <div className="p-2">
-          <div className="flex items-center justify-between pb-2">
-            <span className="text-sm font-medium">{placeholder}</span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onChange(selected.length === options.length ? [] : options.map(o => o.value))}
-              className="h-auto p-1 text-xs"
+      <PopoverContent className="w-[200px] p-1" align="start">
+        <ScrollArea className="h-[150px]">
+          {options.map((option) => (
+            <div
+              key={option.value}
+              className="flex items-center space-x-2 p-1.5 rounded hover:bg-accent cursor-pointer"
+              onClick={() => toggleOption(option.value)}
             >
-              {selected.length === options.length ? "Desmarcar todos" : "Selecionar todos"}
-            </Button>
-          </div>
-          <Separator className="mb-2" />
-          <ScrollArea className="h-[200px]">
-            {options.map((option) => (
-              <div
-                key={option.value}
-                className="flex items-center space-x-2 p-2 rounded hover:bg-accent cursor-pointer"
-                onClick={() => toggleOption(option.value)}
-              >
-                <div className={cn(
-                  "h-4 w-4 border rounded flex items-center justify-center",
-                  selected.includes(option.value) ? "bg-primary border-primary" : "border-muted-foreground"
-                )}>
-                  {selected.includes(option.value) && <Check className="h-3 w-3 text-primary-foreground" />}
-                </div>
-                <label className="text-sm font-medium cursor-pointer">
-                  {option.label}
-                </label>
+              <div className={cn(
+                "h-3 w-3 border rounded-sm flex items-center justify-center",
+                selected.includes(option.value) ? "bg-primary border-primary" : "border-muted-foreground"
+              )}>
+                {selected.includes(option.value) && <Check className="h-2 w-2 text-primary-foreground" />}
               </div>
-            ))}
-          </ScrollArea>
-        </div>
+              <label className="text-xs cursor-pointer flex-1">
+                {option.label}
+              </label>
+            </div>
+          ))}
+        </ScrollArea>
       </PopoverContent>
     </Popover>
   )
@@ -157,8 +136,10 @@ export function TransactionsFiltersDialog({
     : undefined
 
   useEffect(() => {
-    setTempFilters(filters)
-  }, [filters])
+    if (!open) {
+      setTempFilters(filters)
+    }
+  }, [open, filters])
 
   const handleApply = () => {
     const finalFilters: TransactionFilters = {}
@@ -187,11 +168,12 @@ export function TransactionsFiltersDialog({
   }
 
   const handleClear = () => {
+    onFiltersChange({})
     setTempFilters({})
+    setOpen(false)
   }
 
-  const activeFiltersCount = Object.keys(filters).filter(key => key !== 'search').length + 
-    (filters.search ? 1 : 0)
+  const activeFiltersCount = Object.keys(filters).length
 
   const categoryOptions: MultiSelectOption[] = categories?.map(cat => ({
     value: cat.id,
@@ -209,8 +191,8 @@ export function TransactionsFiltersDialog({
   })) || []
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
         <Button variant="outline" size="default">
           <Filter className="mr-2 h-4 w-4" />
           Filtros
@@ -220,32 +202,39 @@ export function TransactionsFiltersDialog({
             </Badge>
           )}
         </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Filtros</DialogTitle>
-          <DialogDescription>
-            Aplique filtros para refinar sua busca de lançamentos
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="space-y-6 py-4">
+      </PopoverTrigger>
+      <PopoverContent className="w-[320px] p-3" align="end">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="font-medium text-sm">Filtros</h4>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClear}
+              className="h-auto p-1 text-xs"
+            >
+              Limpar
+            </Button>
+          </div>
+          
+          <Separator />
+          
           {/* Busca */}
-          <div className="space-y-2">
-            <Label htmlFor="search">Buscar</Label>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Buscar</Label>
             <Input
-              id="search"
-              placeholder="Buscar por descrição..."
+              placeholder="Descrição..."
               value={tempFilters.search || ""}
               onChange={(e) => setTempFilters({ ...tempFilters, search: e.target.value })}
+              className="h-8 text-xs"
             />
           </div>
 
-          {/* Status e Tipo lado a lado */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Status</Label>
-              <MultiSelect
+          {/* Status e Tipo */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs">Status</Label>
+              <CompactMultiSelect
                 options={statusOptions}
                 selected={selectedStatuses}
                 onChange={(values) => {
@@ -257,13 +246,13 @@ export function TransactionsFiltersDialog({
                   }
                   setTempFilters(newFilters)
                 }}
-                placeholder="Selecione os status"
+                placeholder="Status"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label>Tipo</Label>
-              <MultiSelect
+            <div className="space-y-1.5">
+              <Label className="text-xs">Tipo</Label>
+              <CompactMultiSelect
                 options={typeOptions}
                 selected={selectedTypes}
                 onChange={(values) => {
@@ -277,36 +266,35 @@ export function TransactionsFiltersDialog({
                   }
                   setTempFilters(newFilters)
                 }}
-                placeholder="Selecione os tipos"
+                placeholder="Tipo"
               />
             </div>
           </div>
 
           {/* Período */}
-          <div className="space-y-2">
-            <Label>Período</Label>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Período</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
-                  id="date"
                   variant="outline"
+                  size="sm"
                   className={cn(
-                    "w-full justify-start text-left font-normal",
+                    "w-full justify-start text-xs h-8 font-normal",
                     !dateRange && "text-muted-foreground"
                   )}
                 >
-                  <Calendar className="mr-2 h-4 w-4" />
+                  <Calendar className="mr-1.5 h-3 w-3" />
                   {dateRange?.from ? (
                     dateRange.to ? (
                       <>
-                        {format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })} -{" "}
-                        {format(dateRange.to, "dd/MM/yyyy", { locale: ptBR })}
+                        {format(dateRange.from, "dd/MM/yy")} - {format(dateRange.to, "dd/MM/yy")}
                       </>
                     ) : (
-                      format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })
+                      format(dateRange.from, "dd/MM/yyyy")
                     )
                   ) : (
-                    <span>Selecione um período</span>
+                    <span>Selecione o período</span>
                   )}
                 </Button>
               </PopoverTrigger>
@@ -338,9 +326,9 @@ export function TransactionsFiltersDialog({
           </div>
 
           {/* Categorias */}
-          <div className="space-y-2">
-            <Label>Categorias</Label>
-            <MultiSelect
+          <div className="space-y-1.5">
+            <Label className="text-xs">Categorias</Label>
+            <CompactMultiSelect
               options={categoryOptions}
               selected={selectedCategories}
               onChange={(values) => {
@@ -352,33 +340,14 @@ export function TransactionsFiltersDialog({
                 }
                 setTempFilters(newFilters)
               }}
-              placeholder="Selecione as categorias"
-            />
-          </div>
-
-          {/* Formas de Pagamento */}
-          <div className="space-y-2">
-            <Label>Formas de Pagamento</Label>
-            <MultiSelect
-              options={paymentMethodOptions}
-              selected={selectedPaymentMethods}
-              onChange={(values) => {
-                const newFilters = { ...tempFilters }
-                if (values.length === 0) {
-                  delete newFilters.payment_method_ids
-                } else {
-                  newFilters.payment_method_ids = values.join(',')
-                }
-                setTempFilters(newFilters)
-              }}
-              placeholder="Selecione as formas de pagamento"
+              placeholder="Todas as categorias"
             />
           </div>
 
           {/* Clientes */}
-          <div className="space-y-2">
-            <Label>Clientes</Label>
-            <MultiSelect
+          <div className="space-y-1.5">
+            <Label className="text-xs">Clientes</Label>
+            <CompactMultiSelect
               options={customerOptions}
               selected={selectedCustomers}
               onChange={(values) => {
@@ -390,26 +359,32 @@ export function TransactionsFiltersDialog({
                 }
                 setTempFilters(newFilters)
               }}
-              placeholder="Selecione os clientes"
+              placeholder="Todos os clientes"
             />
           </div>
-        </div>
 
-        <DialogFooter className="flex justify-between">
-          <Button variant="ghost" onClick={handleClear}>
-            <X className="mr-2 h-4 w-4" />
-            Limpar
-          </Button>
+          <Separator />
+          
+          {/* Botões */}
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setOpen(false)}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setOpen(false)}
+              className="flex-1 h-8 text-xs"
+            >
               Cancelar
             </Button>
-            <Button onClick={handleApply}>
-              Aplicar Filtros
+            <Button
+              size="sm"
+              onClick={handleApply}
+              className="flex-1 h-8 text-xs"
+            >
+              Aplicar
             </Button>
           </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </PopoverContent>
+    </Popover>
   )
 }
